@@ -30,6 +30,8 @@
 ## Introduction
 This pipeline annotates genomes using bakta (using the `--bakta` option) or prokka (using the `--prokka` option), and generates a pangenome using [Panaroo](https://gtonkinhill.github.io/panaroo/#/gettingstarted/quickstart). This Nextflow pipeline was adapted from NF Core's [bakta module](https://github.com/nf-core/modules/tree/master/modules/nf-core/bakta/bakta), NF Core's [prokka module](https://github.com/nf-core/modules/tree/master/modules/nf-core/prokka), and NF Core's [panaroo module](https://github.com/nf-core/modules/blob/master/modules/nf-core/panaroo).  
 
+Bakta databases (full or light) can be downloaded from the [bakta Github page](https://github.com/oschwengers/bakta#database-download).
+
 
 ## Sample command
 
