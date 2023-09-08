@@ -43,6 +43,18 @@ workflow {
 	
 	} else {
 	
+	// Message to user
+	if (!final_params.bakta && !final_params.bakta) {
+	exit("""
+	ERROR!
+	A major error has occured!
+	
+	==> User forgot to specify --prokka or --bakta (and the --bakta_db) arguments. Check nextflow run /path/to/main.nf --help for further details."
+	
+	""")
+	
+	} else {
+	
 	// if gff files are absent, run genome annotation afresh and run pangenome analyses afterwards, provided that the user supplied the filepath to genome assemblies
 	
 	if (final_params.assemblies && final_params.output_dir) {
@@ -61,8 +73,16 @@ workflow {
 	    PANAROO_RUN(BAKTA.out.gff_ch.collect())
     }
         
-    } else {
-        // Message to user
+    }
+	}
+	
+	 
+	}
+	
+	} else {
+	
+	// Message to user
+	if (!final_params.bakta && !final_params.bakta) {
 	exit("""
 	ERROR!
 	A major error has occured!
@@ -70,12 +90,10 @@ workflow {
 	==> User forgot to specify --prokka or --bakta (and the --bakta_db) arguments. Check nextflow run /path/to/main.nf --help for further details."
 	
 	""")
-    }
-    
-	}
 	
 	} else {
-		// this means that only the genome annotation part would be run since the --panaroo option was not supplied
+	
+	// this means that only the genome annotation part would be run since the --panaroo option was not supplied
 		// check if user supplied the file path to the genome assemblies
 	
 	if (final_params.assemblies && final_params.output_dir) {
@@ -93,17 +111,8 @@ workflow {
             BAKTA(assemblies_ch, final_params.bakta_db)
 	    
     }
-	} else {
+	}
 	
-	// Message to user
-	exit("""
-	ERROR!
-	A major error has occured!
-	
-	==> User forgot to specify --prokka or --bakta (and the --bakta_db) arguments. Check nextflow run /path/to/main.nf --help for further details."
-	
-	""")
-		
 	}
 	
 }
