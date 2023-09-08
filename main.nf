@@ -44,12 +44,12 @@ workflow {
 	} else {
 	
 	// Message to user
-	if (!final_params.bakta && !final_params.bakta) {
+	if (!final_params.bakta && !final_params.prokka) {
 	exit("""
 	ERROR!
 	A major error has occured!
 	
-	==> User forgot to specify --prokka or --bakta (and the --bakta_db) arguments. Check nextflow run /path/to/main.nf --help for further details."
+	==> User forgot to specify --prokka or --bakta arguments. Check nextflow run /path/to/main.nf --help for further details."
 	
 	""")
 	
@@ -68,6 +68,16 @@ workflow {
             PROKKA(assemblies_ch)
 	    PANAROO_RUN(PROKKA.out.gff_ch.collect())
     }
+    
+    	if (final_params.bakta && !final_params.bakta_db) {
+            exit("""
+	ERROR!
+	A major error has occured!
+	
+	==> User forgot to specify the --bakta_db argument. Check nextflow run /path/to/main.nf --help for further details."
+	
+	""")
+    }
         if (final_params.bakta && final_params.bakta_db) {
             BAKTA(assemblies_ch, final_params.bakta_db)
 	    PANAROO_RUN(BAKTA.out.gff_ch.collect())
@@ -82,12 +92,12 @@ workflow {
 	} else {
 	
 	// Message to user
-	if (!final_params.bakta && !final_params.bakta) {
+	if (!final_params.prokka && !final_params.bakta) {
 	exit("""
 	ERROR!
 	A major error has occured!
 	
-	==> User forgot to specify --prokka or --bakta (and the --bakta_db) arguments. Check nextflow run /path/to/main.nf --help for further details."
+	==> User forgot to specify --prokka or --bakta arguments. Check nextflow run /path/to/main.nf --help for further details."
 	
 	""")
 	
@@ -107,6 +117,17 @@ workflow {
             PROKKA(assemblies_ch)
 	   
     }
+    
+   	 if (final_params.bakta && !final_params.bakta_db) {
+            exit("""
+	ERROR!
+	A major error has occured!
+	
+	==> User forgot to specify the --bakta_db argument. Check nextflow run /path/to/main.nf --help for further details."
+	
+	""")
+    }
+    
         if (final_params.bakta && final_params.bakta_db) {
             BAKTA(assemblies_ch, final_params.bakta_db)
 	    
