@@ -4,7 +4,7 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - bioconda::bakta=1.7.0
+  - bioconda::bakta=1.8.2
   - bioconda::prokka=1.14.6
   - bioconda::panaroo
  
