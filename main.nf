@@ -25,15 +25,48 @@ pipeline_start_message(version, final_params)
 
 
 // include processes
-include { PROKKA; BAKTA; PANAROO_RUN } from './modules/processes.nf' addParams(final_params)
+include { PROKKA; BAKTA; PANAROO_RUN; IQTREE } from './modules/processes.nf' addParams(final_params)
 
 workflow {
 	
+	if (final_params.alignment && final_params.iqtree) {
+            aln_filtered_ch = Channel
+			            .fromPath(final_params.alignment)
+        		            .ifEmpty { error "Cannot find any alignment file matching: ${final_params.alignment}" }
+				    
+	    IQTREE(aln_filtered_ch)
+        }
+	
+	// Message to user
+	if (final_params.alignment && !final_params.iqtree) {
+	exit("""
+	ERROR!
+	A major error has occured!
+	
+	==> User forgot to specify --iqtree. Check nextflow run /path/to/main.nf --help for further details."
+	
+	""")
+	
+	}
+	
 	if (final_params.panaroo) {
 	
-	// check if user supplied the filepath to gff files
+	// check if user supplied the filepath to gff files and also if both gff_input and iqtree arguments are supplied
 	
-	if (final_params.gff_input) {
+	if (final_params.gff_input && final_params.iqtree) {
+	gffinput_ch = Channel
+			     .fromPath(final_params.gff_input)
+        		     .collect()
+        		     .ifEmpty { error "Cannot find any gff file matching: ${final_params.gff_input}" }
+			     
+	PANAROO_RUN(gffinput_ch)
+	IQTREE(PANAROO_RUN.out.aln_filtered_ch)
+	
+	} 
+	
+	// if only the gff_input was supplied
+	if (final_params.gff_input && !final_params.iqtree) {
+	
 	gffinput_ch = Channel
 			     .fromPath(final_params.gff_input)
         		     .collect()
@@ -41,19 +74,8 @@ workflow {
 			     
 	PANAROO_RUN(gffinput_ch)
 	
-	} else {
 	
-	// Message to user
-	if (!final_params.bakta && !final_params.prokka) {
-	exit("""
-	ERROR!
-	A major error has occured!
-	
-	==> User forgot to specify --prokka or --bakta arguments. Check nextflow run /path/to/main.nf --help for further details."
-	
-	""")
-	
-	} else {
+	} 
 	
 	// if gff files are absent, run genome annotation afresh and run pangenome analyses afterwards, provided that the user supplied the filepath to genome assemblies
 	
@@ -64,35 +86,31 @@ workflow {
         			.ifEmpty { error "Cannot find any assembly fasta file matching: ${final_params.assemblies}" }
 				
 	// if assemblies filepaths are specified, check if the argument '--prokka' or '--bakta' is provided.
-        if (final_params.prokka) {
+        if (final_params.prokka && final_params.iqtree) {
             PROKKA(assemblies_ch)
 	    PANAROO_RUN(PROKKA.out.gff_ch.collect())
-    }
-    
-    	if (final_params.bakta && !final_params.bakta_db) {
-            exit("""
-	ERROR!
-	A major error has occured!
-	
-	==> User forgot to specify the --bakta_db argument. Check nextflow run /path/to/main.nf --help for further details."
-	
-	""")
-    }
-        if (final_params.bakta && final_params.bakta_db) {
+	    IQTREE(PANAROO_RUN.out.aln_filtered_ch)
+       }
+        if (final_params.prokka && !final_params.iqtree ) {
+            PROKKA(assemblies_ch)
+	    PANAROO_RUN(PROKKA.out.gff_ch.collect())
+	    
+       }
+       
+       if (final_params.bakta && final_params.bakta_db && final_params.iqtree) {
             BAKTA(assemblies_ch, final_params.bakta_db)
 	    PANAROO_RUN(BAKTA.out.gff_ch.collect())
-    }
-        
-    }
-	}
-	
-	 
-	}
-	
-	} else {
-	
-	// Message to user
-	if (!final_params.prokka && !final_params.bakta) {
+	    IQTREE(PANAROO_RUN.out.aln_filtered_ch)
+       }
+    
+    	if (final_params.bakta && final_params.bakta_db && !final_params.iqtree) {
+            BAKTA(assemblies_ch, final_params.bakta_db)
+	    PANAROO_RUN(BAKTA.out.gff_ch.collect())
+	    
+       } 
+       
+       // Message to user
+	if (!final_params.bakta && !final_params.prokka) {
 	exit("""
 	ERROR!
 	A major error has occured!
@@ -101,7 +119,23 @@ workflow {
 	
 	""")
 	
+	}
+	
+	if (final_params.bakta && !final_params.bakta_db) {
+            exit("""
+	ERROR!
+	A major error has occured!
+	
+	==> User forgot to specify the --bakta_db argument. Check nextflow run /path/to/main.nf --help for further details."
+	
+	""")
+       } 
+	 
+	}
+	
 	} else {
+	
+	 
 	
 	// this means that only the genome annotation part would be run since the --panaroo option was not supplied
 		// check if user supplied the file path to the genome assemblies
@@ -116,9 +150,9 @@ workflow {
         if (final_params.prokka) {
             PROKKA(assemblies_ch)
 	   
-    }
+        }
     
-   	 if (final_params.bakta && !final_params.bakta_db) {
+   	if (final_params.bakta && !final_params.bakta_db) {
             exit("""
 	ERROR!
 	A major error has occured!
@@ -126,15 +160,16 @@ workflow {
 	==> User forgot to specify the --bakta_db argument. Check nextflow run /path/to/main.nf --help for further details."
 	
 	""")
-    }
+        }
     
         if (final_params.bakta && final_params.bakta_db) {
             BAKTA(assemblies_ch, final_params.bakta_db)
 	    
-    }
-	}
+        }
 	
 	}
+	
+	
 	
 }
 
