@@ -22,13 +22,16 @@
         Optional arguments:
 	 --bakta_db			Path to bakta database if the --bakta option is supplied
 	 --gff_input                    Path to gff/gff3 file if available. In this case, the --assemblies (and --prokka or --bakta) arguments are no longer necessary.
+	 --alignment                    Path to filtered alignment file if available. Sole purpose is to use this as an input to construct a phylogenetic tree.
+                                        Therefore, it must be accompanied with --iqtree when supplied.
+         --iqtree                       if interested in building a maximum-likelihood phylogenetic tree, this option has to be supplied.
          --help                         This usage statement.
          --version                      Version statement
 ```
 
 
 ## Introduction
-This pipeline annotates genomes using bakta (using the `--bakta` option) or prokka (using the `--prokka` option), and generates a pangenome using [Panaroo](https://gtonkinhill.github.io/panaroo/#/gettingstarted/quickstart). This Nextflow pipeline was adapted from NF Core's [bakta module](https://github.com/nf-core/modules/tree/master/modules/nf-core/bakta/bakta), NF Core's [prokka module](https://github.com/nf-core/modules/tree/master/modules/nf-core/prokka), and NF Core's [panaroo module](https://github.com/nf-core/modules/blob/master/modules/nf-core/panaroo).  
+This pipeline annotates genomes using bakta (using the `--bakta` option) or prokka (using the `--prokka` option), and generates a pangenome using [Panaroo](https://gtonkinhill.github.io/panaroo/#/gettingstarted/quickstart). This Nextflow pipeline was adapted from NF Core's [bakta module](https://github.com/nf-core/modules/tree/master/modules/nf-core/bakta/bakta), NF Core's [prokka module](https://github.com/nf-core/modules/tree/master/modules/nf-core/prokka), and NF Core's [panaroo module](https://github.com/nf-core/modules/blob/master/modules/nf-core/panaroo). A maximum likelihood phylogenetic tree can also be generated from the core genome filtered alignment file (one of Panaroo's output files) if the `--iqtree` argument is specified. If the core genome filtered alignment file has been generated previously, use only the `--alignment`, `--iqtree`, and the `--output_dir` arguments for generating the phylogenetic tree.
 
 Bakta databases (full or light) can be downloaded from the [bakta Github page](https://github.com/oschwengers/bakta#database-download), or from [here](https://zenodo.org/record/7669534).
 
@@ -38,8 +41,10 @@ Bakta databases (full or light) can be downloaded from the [bakta Github page](h
 An example command to run this pipeline if gff files are available is
 
 ```
-nextflow run main.nf --gff_input "/path/to/*.gff*" --output_dir "PathToOutputDir" --panaroo
+nextflow run main.nf --gff_input "/path/to/*.gff*" --output_dir "PathToOutputDir" --panaroo --iqtree
 ```
+Simply remove the `--iqtree` option if only interested in pangenome analysis without tree generation
+
 
 An example of a command to run this pipeline if a gff output is absent, using bakta is:
 
