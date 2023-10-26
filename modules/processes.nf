@@ -88,7 +88,7 @@ process PANAROO_RUN {
 
     output:
     path("pangenome_out/*")                                      		, emit: results_ch
-    path("pangenome_out/core_gene_alignment.aln"), optional: true		, emit: aln_ch
+    path("pangenome_out/core_gene_alignment_filtered.aln"), optional: true	, emit: aln_filtered_ch
     path "versions.yml"                                                     	, emit: versions_ch
 
     when:
@@ -110,6 +110,37 @@ process PANAROO_RUN {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         panaroo: \$(echo \$(panaroo --version 2>&1) | sed 's/^.*panaroo //' ))
+    END_VERSIONS
+    """
+}
+
+process IQTREE {
+    tag "$alignment"
+    publishDir params.output_dir, mode: 'copy'
+    
+    input:
+    path alignment
+    
+    output:
+    path "*.treefile",    emit: phylogeny_ch
+    path "versions.yml" , emit: versions_ch
+
+    when:
+    task.ext.when == null || task.ext.when
+
+    script:
+    def args = task.ext.args ?: ''
+    def memory = task.memory.toString().replaceAll(' ', '')
+    """
+    iqtree \\
+        $args \\
+        -s $alignment \\
+	-nt AUTO \\
+        -ntmax $task.cpus \\
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        iqtree: \$(echo \$(iqtree -version 2>&1) | sed 's/^IQ-TREE multicore version //;s/ .*//')
     END_VERSIONS
     """
 }
