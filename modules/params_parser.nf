@@ -11,7 +11,9 @@ def default_params(){
     params.bakta_db = false
     params.output_dir = false
     params.panaroo = false
+    params.iqtree = false
     params.gff_input = false
+    params.alignment = false
     return params
 }
 
